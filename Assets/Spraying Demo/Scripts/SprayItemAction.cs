@@ -5,8 +5,11 @@ using Opsive.UltimateCharacterController.Camera;
 using Opsive.Shared.Inventory;
 using Opsive.Shared.Events;
 using Opsive.UltimateCharacterController.Character.Abilities.Items;
+using Photon.Pun;
+using Opsive.UltimateCharacterController.AddOns.Multiplayer.PhotonPun.Character;
+using System.Linq;
 
-public class SprayItemAction : UsableItem
+public class SprayItemAction : UsableItem, IHitPoint, IHitLine
 {
     [SerializeField] private Color m_PaintColor;
     [SerializeField] private Camera m_Camera;
@@ -14,14 +17,16 @@ public class SprayItemAction : UsableItem
     [SerializeField] protected ItemDefinitionBase m_ConsumableItemDefinition;
     public Color PaintColor { get { return m_PaintColor; } set { m_PaintColor = value; } }
 
-    private GameObject m_PaintObject;
     private P3dHitScreen m_P3dHitScreen;
     private P3dPaintSphere m_P3dPaintSphere;
     private CameraController m_CameraController;
     private IItemIdentifier m_ConsumableItemIdentifier;
     private int m_FluidRemaining;
     private bool m_IsInSprayingRange;
-    
+    private SprayNetworkCommand m_SprayNetworkCommand;
+    private IHitPoint[] m_HitPoints;
+    private IHitLine[] m_HitLines;
+
     public int FluidRemaining 
     { 
         get { return m_FluidRemaining; } 
@@ -42,11 +47,13 @@ public class SprayItemAction : UsableItem
         if (m_ConsumableItemDefinition != null)
             m_ConsumableItemIdentifier = m_ConsumableItemDefinition.CreateItemIdentifier();
 
-        m_PaintObject = new GameObject("Paint");
-        m_P3dHitScreen = m_PaintObject.AddComponent<P3dHitScreen>();
-        m_P3dPaintSphere = m_PaintObject.AddComponent<P3dPaintSphere>();
+        m_P3dHitScreen = gameObject.AddComponent<P3dHitScreen>();
+        m_P3dPaintSphere = gameObject.AddComponent<P3dPaintSphere>();
         m_P3dPaintSphere.Color = m_PaintColor;
         m_CameraController = m_Camera.GetComponent<CameraController>();
+        m_SprayNetworkCommand = m_Character.GetComponent<SprayNetworkCommand>();
+        m_HitPoints = gameObject.GetComponentsInChildren<IHitPoint>();
+        m_HitLines = gameObject.GetComponentsInChildren<IHitLine>();
 
         EventHandler.RegisterEvent<IItemIdentifier, int, bool, bool>(m_Character, "OnInventoryPickupItemIdentifier", OnPickupItemIdentifier);
     }
@@ -94,14 +101,14 @@ public class SprayItemAction : UsableItem
     public override void StartItemUse(ItemAbility useAbility)
     {
         base.StartItemUse(useAbility);
-        Debug.Log("StartItemUse");
+        
         EnableP3dHitScreen();
     }
 
     public override void StopItemUse()
     {
         base.StopItemUse();
-        Debug.Log("StopItemUse");
+
         DisableP3dHitScreen();
     }
 
@@ -125,5 +132,62 @@ public class SprayItemAction : UsableItem
             return false;
 
         return true;
+    }
+
+    protected override void OnDestroy()
+    {
+        base.OnDestroy();
+
+        EventHandler.UnregisterEvent<IItemIdentifier, int, bool, bool>(m_Character, "OnItemUseConsumableItemIdentifier", OnPickupItemIdentifier);
+    }
+
+    public void HandleHitPoint(bool preview, int priority, float pressure, int seed, Vector3 position, Quaternion rotation)
+    {
+        if (m_NetworkInfo == null || m_NetworkInfo.IsLocalPlayer())
+        {
+            if (m_NetworkCharacter != null && m_SprayNetworkCommand != null)
+            {
+                m_SprayNetworkCommand.HandleHitPoint(this, preview, priority, pressure, seed, position, rotation);
+            }
+        }
+    }
+
+    public void HandleHitLine(bool preview, int priority, float pressure, int seed, Vector3 position, Vector3 endPosition, Quaternion rotation, bool clip)
+    {
+        if (m_NetworkInfo == null || m_NetworkInfo.IsLocalPlayer())
+        {
+            if (m_NetworkCharacter != null && m_SprayNetworkCommand != null)
+            {
+                m_SprayNetworkCommand.HandleHitLine(this, preview, priority, pressure, seed, position, endPosition, rotation, clip);
+            }
+        }
+    }
+
+    public void BroadcastHitPoint(bool preview, int priority, float pressure, int seed, Vector3 position, Quaternion rotation)
+    {
+        // Loop through all components that implement IHitPoint
+        foreach (var hitPoint in m_HitPoints)
+        {
+            // Ignore this one so we don't recursively paint
+            if ((Object)hitPoint != this)
+            {
+                // Submit the hit point
+                hitPoint.HandleHitPoint(preview, priority, pressure, seed, position, rotation);
+            }
+        }
+    }
+
+    public void BroadcastHitLine(bool preview, int priority, float pressure, int seed, Vector3 position, Vector3 endPosition, Quaternion rotation, bool clip)
+    {
+        // Loop through all components that implement IHitLine
+        foreach (var hitLine in m_HitLines)
+        {
+            // Ignore this one so we don't recursively paint
+            if ((Object)hitLine != this)
+            {
+                // Submit the hit line
+                hitLine.HandleHitLine(preview, priority, pressure, seed, position, endPosition, rotation, clip);
+            }
+        }
     }
 }
