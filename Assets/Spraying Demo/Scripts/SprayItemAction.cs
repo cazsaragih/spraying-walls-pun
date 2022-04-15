@@ -47,6 +47,8 @@ public class SprayItemAction : UsableItem
         m_P3dPaintSphere = m_PaintObject.AddComponent<P3dPaintSphere>();
         m_P3dPaintSphere.Color = m_PaintColor;
         m_CameraController = m_Camera.GetComponent<CameraController>();
+
+        EventHandler.RegisterEvent<IItemIdentifier, int, bool, bool>(m_Character, "OnInventoryPickupItemIdentifier", OnPickupItemIdentifier);
     }
 
     protected override void Start()
@@ -54,7 +56,11 @@ public class SprayItemAction : UsableItem
         base.Start();
 
         DisableP3dHitScreen();
-        FluidRemaining = m_Inventory.GetItemIdentifierAmount(m_ConsumableItemIdentifier);
+    }
+
+    private void OnPickupItemIdentifier(IItemIdentifier itemIdentifier, int amount, bool immediatePickup, bool forceEquip) 
+    {
+        FluidRemaining += amount;
     }
 
     private void FixedUpdate()
