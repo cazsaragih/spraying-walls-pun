@@ -1,13 +1,10 @@
-using Opsive.UltimateCharacterController.Items.Actions;
-using UnityEngine;
-using PaintIn3D;
-using Opsive.UltimateCharacterController.Camera;
-using Opsive.Shared.Inventory;
 using Opsive.Shared.Events;
+using Opsive.Shared.Inventory;
+using Opsive.UltimateCharacterController.Camera;
 using Opsive.UltimateCharacterController.Character.Abilities.Items;
-using Photon.Pun;
-using Opsive.UltimateCharacterController.AddOns.Multiplayer.PhotonPun.Character;
-using System.Linq;
+using Opsive.UltimateCharacterController.Items.Actions;
+using PaintIn3D;
+using UnityEngine;
 
 public class SprayItemAction : UsableItem, IHitPoint, IHitLine
 {
@@ -15,7 +12,6 @@ public class SprayItemAction : UsableItem, IHitPoint, IHitLine
     [SerializeField] private Camera m_Camera;
     [SerializeField] private float m_SprayDistance = 3.5f;
     [SerializeField] protected ItemDefinitionBase m_ConsumableItemDefinition;
-    public Color PaintColor { get { return m_PaintColor; } set { m_PaintColor = value; } }
 
     private P3dHitScreen m_P3dHitScreen;
     private P3dPaintSphere m_P3dPaintSphere;
@@ -27,11 +23,11 @@ public class SprayItemAction : UsableItem, IHitPoint, IHitLine
     private IHitPoint[] m_HitPoints;
     private IHitLine[] m_HitLines;
 
-    public int FluidRemaining 
-    { 
-        get { return m_FluidRemaining; } 
-        private set 
-        { 
+    public int FluidRemaining
+    {
+        get { return m_FluidRemaining; }
+        private set
+        {
             m_FluidRemaining = value;
             EventHandler.ExecuteEvent(m_Character, "OnItemUseConsumableItemIdentifier", m_Item, m_ConsumableItemIdentifier, m_FluidRemaining);
         }
@@ -65,7 +61,7 @@ public class SprayItemAction : UsableItem, IHitPoint, IHitLine
         DisableP3dHitScreen();
     }
 
-    private void OnPickupItemIdentifier(IItemIdentifier itemIdentifier, int amount, bool immediatePickup, bool forceEquip) 
+    private void OnPickupItemIdentifier(IItemIdentifier itemIdentifier, int amount, bool immediatePickup, bool forceEquip)
     {
         FluidRemaining += amount;
     }
@@ -101,7 +97,7 @@ public class SprayItemAction : UsableItem, IHitPoint, IHitLine
     public override void StartItemUse(ItemAbility useAbility)
     {
         base.StartItemUse(useAbility);
-        
+
         EnableP3dHitScreen();
     }
 
