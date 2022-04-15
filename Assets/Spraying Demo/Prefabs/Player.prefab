@@ -1344,7 +1344,7 @@ MonoBehaviour:
   - ItemDefinition: {fileID: -3654238154341818534, guid: 463f7b6b9d9e8f74bace75bbcce69d43, type: 2}
     Amount: 1
   - ItemDefinition: {fileID: -1254472191827482361, guid: 463f7b6b9d9e8f74bace75bbcce69d43, type: 2}
-    Amount: 20
+    Amount: 100
 --- !u!114 &2541405213400090050
 MonoBehaviour:
   m_ObjectHideFlags: 0
