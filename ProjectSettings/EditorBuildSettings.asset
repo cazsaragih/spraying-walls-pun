@@ -4,5 +4,11 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes: []
+  m_Scenes:
+  - enabled: 1
+    path: Assets/Spraying Demo/Scenes/Menu.unity
+    guid: 5ff2aa974a5e0874a8fd4f637d38c197
+  - enabled: 1
+    path: Assets/Spraying Demo/Scenes/SprayingDemo.unity
+    guid: 34a2a17af9da84b4395baafbd382478a
   m_configObjects: {}
