@@ -1,4 +1,4 @@
-# Spraying Walls with UCC, P3D, and PUN
+# Spraying Walls with UCC, P3D, and PUN (Photon)
 A proof of concept where you can spray the wall in a multiplayer setup integrating 3 plugins.
 
 ## How to Play
